@@ -1,49 +1,32 @@
 package br.com.autolaudo.rest;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 
 import br.com.autolaudo.dto.CriarQuimicoDTO;
 import br.com.autolaudo.dto.ImagemFormDTO;
+import br.com.autolaudo.dto.QuimicoResponseDTO;
 import br.com.autolaudo.models.Quimico;
 import br.com.autolaudo.services.QuimicoService;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.Response.Status;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import java.nio.file.Paths;
+
 import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
-import com.mongodb.client.gridfs.GridFSDownloadStream;
-import com.mongodb.client.gridfs.model.GridFSFile;
 import com.mongodb.client.gridfs.model.GridFSUploadOptions;
-import io.quarkus.mongodb.MongoClientName;
-import org.bson.types.ObjectId;
-import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
+
+import org.jboss.resteasy.reactive.MultipartForm;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
-
 
 @Path("/quimicos")
 @Produces(MediaType.APPLICATION_JSON)
@@ -56,15 +39,11 @@ public class QuimicoResource {
     @Inject
     MongoClient mongoClient;
 
-    @GET
-    @Path("/teste")
-    public String teste() {
-        return mongoClient.getDatabase("autolaudo_db").getName();
-    }
-
     @POST
-    @Path("/Criar/Quimico")
+    @Path("/criar/upload")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Operation(summary = "Cria químico com upload de assinatura")
+    @APIResponse(responseCode = "200", description = "Imagem salva com sucesso")
     public Response upload(@MultipartForm ImagemFormDTO form) {
         try {
             MongoDatabase database = mongoClient.getDatabase("autolaudo_db");
@@ -77,7 +56,6 @@ public class QuimicoResource {
             ObjectId fileId = gridFSBucket.uploadFromStream(form.nome, form.arquivo, options);
 
             Quimico quimico = new Quimico();
-
             quimico.setNome(form.getNomeQuimico());
             quimico.setCrq(form.getCrq());
             quimico.setRegiao(form.getRegiao());
@@ -85,84 +63,92 @@ public class QuimicoResource {
 
             quimicoService.salvarQuimico(quimico);
 
-            return Response.ok("Imagem salva com ID: " + fileId.toHexString()).build();
+            return Response.ok(quimico).build();
         } catch (Exception e) {
-            e.printStackTrace();
             return Response.serverError().entity("Erro ao fazer upload: " + e.getMessage()).build();
         }
-        
     }
 
     @GET
+    @Operation(summary = "Lista todos os químicos")
+    @APIResponse(responseCode = "200", description = "Lista retornada com sucesso")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "LISTAR QUIMICOS")
-    public List<Quimico> listarTodos() {
-        return Quimico.listAll();
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response listarTodos() {
+        List<QuimicoResponseDTO> lista = Quimico.<Quimico>listAll()
+                .stream()
+                .map(q -> new QuimicoResponseDTO(
+                        q.getNome(),
+                        q.getCrq(),
+                        q.getRegiao(),
+                        q.getCaminhoAssinatura()))
+                .toList();
+
+        return Response.ok(lista, MediaType.APPLICATION_JSON).build();
     }
 
     @GET
     @Path("/{id}")
+    @Operation(summary = "Busca químico por ID")
+    @APIResponse(responseCode = "200", description = "Químico encontrado")
+    @APIResponse(responseCode = "404", description = "Químico não encontrado")
     public Response buscarPorId(@PathParam("id") String id) {
         try {
             Quimico quimico = Quimico.findById(new ObjectId(id));
-            return quimico != null ? Response.ok(quimico).build() : Response.status(Status.NOT_FOUND).build();
+            if (quimico == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("Químico não encontrado").build();
+            }
+            return Response.ok(quimico).build();
         } catch (IllegalArgumentException e) {
-            return Response.status(Status.BAD_REQUEST).entity("Formato de ID inválido.").build();
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Formato de ID inválido: " + e.getMessage()).build();
         }
-    }
-    
-    @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Operation(summary = "criar quimico")
-    public Response criar(CriarQuimicoDTO quimicoDTO) {
-
-        Quimico quimico = new Quimico();
-
-        quimico.setNome(quimicoDTO.getNome());
-        quimico.setCrq(quimicoDTO.getCrq());
-        quimico.setRegiao(quimicoDTO.getRegiao());
-        quimico.setCaminhoAssinatura(quimicoDTO.getCaminhoAssinatura());
-
-        quimicoService.salvarQuimico(quimico);
-        return Response.status(Status.CREATED).entity(quimico).build();
     }
 
     @PUT
     @Path("/{id}")
     @Transactional
+    @Operation(summary = "Atualiza um químico")
+    @APIResponse(responseCode = "200", description = "Químico atualizado com sucesso")
+    @APIResponse(responseCode = "404", description = "Químico não encontrado")
     public Response atualizar(@PathParam("id") String id, Quimico quimicoAtualizado) {
         try {
             Quimico quimico = Quimico.findById(new ObjectId(id));
             if (quimico == null) {
-                return Response.status(Status.NOT_FOUND).build();
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("Químico não encontrado").build();
             }
 
-            // Atualiza os campos do objeto encontrado com os dados recebidos
             quimico.nome = quimicoAtualizado.nome;
             quimico.crq = quimicoAtualizado.crq;
             quimico.regiao = quimicoAtualizado.regiao;
             quimico.caminhoAssinatura = quimicoAtualizado.caminhoAssinatura;
-            
-            // Com Panache e MongoDB, usamos o método update().
+
             quimico.update();
-            
+
             return Response.ok(quimico).build();
         } catch (IllegalArgumentException e) {
-            return Response.status(Status.BAD_REQUEST).entity("Formato de ID inválido.").build();
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Formato de ID inválido" + e.getMessage()).build();
         }
     }
 
     @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
     @Path("/{crq}")
+    @Operation(summary = "Deleta um químico pelo CRQ")
+    @APIResponse(responseCode = "202", description = "Químico deletado com sucesso")
+    @APIResponse(responseCode = "400", description = "Formato de CRQ inválido")
     public Response deletar(@PathParam("crq") String crq) {
         try {
             quimicoService.excluirQuimico(crq);
-            return Response.status(Status.ACCEPTED).entity("Químico deletado com sucesso.").build();
+            return Response.status(Response.Status.ACCEPTED)
+                    .entity(crq)
+                    .build();
         } catch (IllegalArgumentException e) {
-            return Response.status(Status.BAD_REQUEST).entity("Formato de CRQ inválido.").build();
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Formato de CRQ inválido: " + e.getMessage())
+                    .build();
         }
     }
 }

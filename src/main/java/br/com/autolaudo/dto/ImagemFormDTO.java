@@ -4,7 +4,7 @@ import java.io.InputStream;
 
 import javax.print.attribute.standard.Media;
 
-import org.jboss.resteasy.annotations.providers.multipart.PartType;
+import org.jboss.resteasy.reactive.PartType;
 
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.core.MediaType;

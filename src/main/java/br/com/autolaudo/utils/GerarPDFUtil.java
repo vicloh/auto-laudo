@@ -53,19 +53,20 @@ public class GerarPDFUtil {
             numeroFormatado = "S/N";
         }
 
-        String enderecoFormatado = String.format("RUA %s, %s", 
-            dadosEmpresaDTO.getLogradouro(), 
-            numeroFormatado);
-        
-        String municipioFormatado = String.format("%s - %s, CEP %s", 
-            dadosEmpresaDTO.getMunicipio(),
-            dadosEmpresaDTO.getUf(),
-            cepFormatado);
-        
+        String enderecoFormatado = String.format("RUA %s, %s",
+                dadosEmpresaDTO.getLogradouro(),
+                numeroFormatado);
+
+        String municipioFormatado = String.format("%s - %s, CEP %s",
+                dadosEmpresaDTO.getMunicipio(),
+                dadosEmpresaDTO.getUf(),
+                cepFormatado);
+
         try (InputStream templateStream = getClass().getResourceAsStream(templatePath)) {
-            
+
             if (templateStream == null) {
-                throw new Exception("Arquivo de template não encontrado no caminho: " + templatePath + ". Verifique se ele está na pasta 'src/main/resources'.");
+                throw new Exception("Arquivo de template não encontrado no caminho: " + templatePath
+                        + ". Verifique se ele está na pasta 'src/main/resources'.");
             }
 
             byte[] templateBytes = templateStream.readAllBytes();
@@ -78,26 +79,30 @@ public class GerarPDFUtil {
                 }
                 System.out.println("Dados Empresa: " + dadosEmpresaDTO.getRazaoSocial());
                 acroForm.getField("razao_social").setValue(dadosEmpresaDTO.getRazaoSocial());
-                acroForm.getField("cnpj").setValue(cnpjFormatado);                
+                acroForm.getField("cnpj").setValue(cnpjFormatado);
                 acroForm.getField("endereco").setValue(enderecoFormatado);
                 acroForm.getField("municipio").setValue(municipioFormatado);
                 acroForm.getField("bairro").setValue(dadosEmpresaDTO.getBairro());
-                acroForm.getField("data_servico").setValue(LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+                acroForm.getField("data_servico")
+                        .setValue(LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
                 acroForm.getField("data_validade").setValue(
-                    templatePath.contains(TipoLaudoEnum.LAUDO_DEDETIZACAO.getNomeTemplate()) ? 
-                    getDataValidadeDedetizacao() : 
-                    getDataValidadeLimpezaCaixaDagua()
-                );
+                        templatePath.contains(TipoLaudoEnum.LAUDO_DEDETIZACAO.getNomeTemplate())
+                                ? getDataValidadeDedetizacao()
+                                : (templatePath.contains(TipoLaudoEnum.LAUDO_LIMPEZA_CAIXA_DAGUA.getNomeTemplate())
+                                        ? getDataValidadeLimpezaCaixaDagua()
+                                        : getDataValidadeDedetizacaoDesratizacao()));
                 System.out.println("CRQ: " + crq);
                 PDField signatureField = acroForm.getField("assinatura");
                 byte[] assBytes = getAssinatura(crq);
-                        PDImageXObject signatureImage = PDImageXObject.createFromByteArray(pdfDocument, assBytes, "assinatura");
-                        PDRectangle position = signatureField.getWidgets().get(0).getRectangle();
-                        PDPage page = signatureField.getWidgets().get(0).getPage();
-                        acroForm.getFields().remove(signatureField);
-                        try (PDPageContentStream contentStream = new PDPageContentStream(pdfDocument, page, AppendMode.APPEND, true, true)) {
-                            contentStream.drawImage(signatureImage, position.getLowerLeftX(), position.getLowerLeftY(), position.getWidth(), position.getHeight());
-                        }
+                PDImageXObject signatureImage = PDImageXObject.createFromByteArray(pdfDocument, assBytes, "assinatura");
+                PDRectangle position = signatureField.getWidgets().get(0).getRectangle();
+                PDPage page = signatureField.getWidgets().get(0).getPage();
+                acroForm.getFields().remove(signatureField);
+                try (PDPageContentStream contentStream = new PDPageContentStream(pdfDocument, page, AppendMode.APPEND,
+                        true, true)) {
+                    contentStream.drawImage(signatureImage, position.getLowerLeftX(), position.getLowerLeftY(),
+                            position.getWidth(), position.getHeight());
+                }
 
                 acroForm.flatten();
 
@@ -114,31 +119,36 @@ public class GerarPDFUtil {
         return dataValidade.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
     }
 
+    private String getDataValidadeDedetizacaoDesratizacao() {
+        LocalDate dataAtual = LocalDate.now();
+        LocalDate dataValidade = dataAtual.plusMonths(3);
+        return dataValidade.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+    }
+
     private String getDataValidadeLimpezaCaixaDagua() {
         LocalDate dataAtual = LocalDate.now();
         LocalDate dataValidade = dataAtual.plusMonths(6);
         return dataValidade.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
     }
-    
+
     private String formatarCnpj(String cnpj) {
         if (cnpj == null || !cnpj.matches("\\d{14}")) {
             return cnpj;
         }
         return cnpj.substring(0, 2) + "." +
-               cnpj.substring(2, 5) + "." +
-               cnpj.substring(5, 8) + "/" +
-               cnpj.substring(8, 12) + "-" +
-               cnpj.substring(12, 14);
+                cnpj.substring(2, 5) + "." +
+                cnpj.substring(5, 8) + "/" +
+                cnpj.substring(8, 12) + "-" +
+                cnpj.substring(12, 14);
     }
 
     private String formatarCep(String cep) {
-    if (cep == null || !cep.matches("\\d{8}")) {
-        return cep; 
+        if (cep == null || !cep.matches("\\d{8}")) {
+            return cep;
         }
-    return cep.substring(0, 5) + "-" + cep.substring(5, 8);
+        return cep.substring(0, 5) + "-" + cep.substring(5, 8);
     }
 
-    
     private byte[] getAssinatura(String crq) {
         Quimico quimico = quimicoService.buscarPorCrq(crq);
         try {
@@ -159,9 +169,12 @@ public class GerarPDFUtil {
                 // tenta inferir pelo nome
                 String filename = gridFSFile.getFilename();
                 if (filename != null) {
-                    if (filename.endsWith(".jpg") || filename.endsWith(".jpeg")) contentType = "image/jpeg";
-                    else if (filename.endsWith(".png")) contentType = "image/png";
-                    else if (filename.endsWith(".gif")) contentType = "image/gif";
+                    if (filename.endsWith(".jpg") || filename.endsWith(".jpeg"))
+                        contentType = "image/jpeg";
+                    else if (filename.endsWith(".png"))
+                        contentType = "image/png";
+                    else if (filename.endsWith(".gif"))
+                        contentType = "image/gif";
                 }
             }
 
@@ -178,10 +191,9 @@ public class GerarPDFUtil {
             downloadStream.close();
 
             return baos.toByteArray();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
-        }    
+        }
     }
 }
