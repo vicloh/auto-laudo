@@ -6,6 +6,7 @@ WORKDIR /app
 # Copia todo o código para o container
 COPY . .
 
+RUN chmod +x mvnw
 # Executa o build do projeto com Maven, gerando o uber-jar do Quarkus sem testes
 RUN ./mvnw package -DskipTests -Dquarkus.package.type=uber-jar
 
