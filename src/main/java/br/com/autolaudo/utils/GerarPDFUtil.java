@@ -30,7 +30,6 @@ import br.com.autolaudo.models.Quimico;
 import br.com.autolaudo.services.QuimicoService;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.core.Response;
 
 @RequestScoped
 public class GerarPDFUtil {
@@ -42,7 +41,6 @@ public class GerarPDFUtil {
     QuimicoService quimicoService;
 
     public byte[] gerarLaudo(DadosEmpresaDTO dadosEmpresaDTO, String templatePath, String crq) throws Exception {
-        String caminhoAssinatura = "/assinatura/assinatura_victor_lohan.png";
         String cnpjFormatado = formatarCnpj(dadosEmpresaDTO.getCnpj());
         String cepFormatado = formatarCep(dadosEmpresaDTO.getCep());
         String numeroFormatado;

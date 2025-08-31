@@ -1,14 +1,11 @@
 package br.com.autolaudo.rest;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.bson.types.ObjectId;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 
-import br.com.autolaudo.dto.CriarQuimicoDTO;
 import br.com.autolaudo.dto.ImagemFormDTO;
 import br.com.autolaudo.dto.QuimicoResponseDTO;
 import br.com.autolaudo.models.Quimico;
