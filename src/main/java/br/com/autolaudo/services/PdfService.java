@@ -20,7 +20,7 @@ public class PdfService {
         return gerarPDFUtil.gerarLaudo(dadosEmpresaDTO, TipoLaudoEnum.LAUDO_LIMPEZA_CAIXA_DAGUA.getNomeTemplate(), crq, dataServicoString);
     }
 
-    public byte[] gerarLaudoDedetizacaoEDesratizacaoPdf(DadosEmpresaDTO dadosEmpresaDTO, String crq, String dataServicoString) throws Exception {
+    public byte[] gerarLaudoDedetizacaoEDesratizacao(DadosEmpresaDTO dadosEmpresaDTO, String crq, String dataServicoString) throws Exception {
         return gerarPDFUtil.gerarLaudo(dadosEmpresaDTO, TipoLaudoEnum.LAUDO_DEDETIZACAO_E_DESRATIZACAO.getNomeTemplate(), crq, dataServicoString);
     }
     

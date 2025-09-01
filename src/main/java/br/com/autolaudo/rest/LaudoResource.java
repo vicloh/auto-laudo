@@ -27,15 +27,8 @@ public class LaudoResource {
     @Inject
     PdfService pdfService;
 
-    @GET
-    @Path("/{cnpj}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public DadosEmpresaDTO consultarCnpj(@PathParam("cnpj") String cnpj) {
-        return brasilApiClient.buscarPorCnpj(cnpj);
-    }
-
     @POST
-    @Path("/gerar/dedetizacao/{cnpj}/{crq}/{dataServico}")
+    @Path("/gerar/dedetizacao")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces("application/pdf")
     public Response gerarLaudoDedetizacaoPdf(
@@ -44,7 +37,7 @@ public class LaudoResource {
 
         DadosEmpresaDTO dadosEmpresa = brasilApiClient.buscarPorCnpj(laudoRequestDTO.getCnpj());
         try {
-            byte[] pdfBytes = pdfService.gerarLaudoLimpezaCaixaDagua(
+            byte[] pdfBytes = pdfService.gerarLaudoDedetizacao(
                 brasilApiClient.buscarPorCnpj(laudoRequestDTO.getCnpj()),
                 laudoRequestDTO.getCrq(),
                 laudoRequestDTO.getDataServico()
@@ -95,7 +88,7 @@ public class LaudoResource {
     }
 
     @POST
-    @Path("/gerar/dedetizacaoEDesratizacao/{cnpj}/{crq}")
+    @Path("/gerar/dedetizacaoEDesratizacao")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces("application/pdf")
     public Response gerarLaudoDedetizacaoEDesratizacaoPdf(
@@ -104,7 +97,7 @@ public class LaudoResource {
 
         DadosEmpresaDTO dadosEmpresa = brasilApiClient.buscarPorCnpj(laudoRequestDTO.getCnpj());
         try {
-            byte[] pdfBytes = pdfService.gerarLaudoLimpezaCaixaDagua(
+            byte[] pdfBytes = pdfService.gerarLaudoDedetizacaoEDesratizacao(
                 brasilApiClient.buscarPorCnpj(laudoRequestDTO.getCnpj()),
                 laudoRequestDTO.getCrq(),
                 laudoRequestDTO.getDataServico()

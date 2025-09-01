@@ -43,7 +43,7 @@ public class GerarPDFUtil {
     public byte[] gerarLaudo(DadosEmpresaDTO dadosEmpresaDTO, String templatePath, String crq, String dataServicoString) throws Exception {
         String cnpjFormatado = formatarCnpj(dadosEmpresaDTO.getCnpj());
         String cepFormatado = formatarCep(dadosEmpresaDTO.getCep());
-        LocalDate dataServico = LocalDate.parse(dataServicoString);
+        LocalDate dataServico = LocalDate.parse(dataServicoString, DateTimeFormatter.ofPattern("ddMMyyyy"));
         String numeroFormatado;
 
         if (dadosEmpresaDTO.getNumero() != null && !dadosEmpresaDTO.getNumero().trim().isEmpty()) {
