@@ -8,10 +8,8 @@ import br.com.autolaudo.restClient.BrasilApiClient;
 import br.com.autolaudo.services.PdfService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -26,7 +24,7 @@ public class LaudoResource {
 
     @Inject
     PdfService pdfService;
-
+    //mudanca aqui
     @POST
     @Path("/gerar/dedetizacao")
     @Consumes(MediaType.APPLICATION_JSON)
