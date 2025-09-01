@@ -24,7 +24,7 @@ public class LaudoResource {
 
     @Inject
     PdfService pdfService;
-
+    //mudanca aqui
     @POST
     @Path("/gerar/dedetizacao")
     @Consumes(MediaType.APPLICATION_JSON)
