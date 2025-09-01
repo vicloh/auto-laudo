@@ -12,16 +12,16 @@ public class PdfService {
     @Inject
     GerarPDFUtil gerarPDFUtil;
 
-    public byte[] gerarLaudoDedetizacao(DadosEmpresaDTO dadosEmpresaDTO, String crq) throws Exception {
-        return gerarPDFUtil.gerarLaudo(dadosEmpresaDTO, TipoLaudoEnum.LAUDO_DEDETIZACAO.getNomeTemplate(), crq);
+    public byte[] gerarLaudoDedetizacao(DadosEmpresaDTO dadosEmpresaDTO, String crq, String dataServicoString) throws Exception {
+        return gerarPDFUtil.gerarLaudo(dadosEmpresaDTO, TipoLaudoEnum.LAUDO_DEDETIZACAO.getNomeTemplate(), crq, dataServicoString);
     }
 
-    public byte[] gerarLaudoLimpezaCaixaDagua(DadosEmpresaDTO dadosEmpresaDTO, String crq) throws Exception {
-        return gerarPDFUtil.gerarLaudo(dadosEmpresaDTO, TipoLaudoEnum.LAUDO_LIMPEZA_CAIXA_DAGUA.getNomeTemplate(), crq);
+    public byte[] gerarLaudoLimpezaCaixaDagua(DadosEmpresaDTO dadosEmpresaDTO, String crq, String dataServicoString) throws Exception {
+        return gerarPDFUtil.gerarLaudo(dadosEmpresaDTO, TipoLaudoEnum.LAUDO_LIMPEZA_CAIXA_DAGUA.getNomeTemplate(), crq, dataServicoString);
     }
 
-    public byte[] gerarLaudoDedetizacaoEDesratizacaoPdf(DadosEmpresaDTO dadosEmpresaDTO, String crq) throws Exception {
-        return gerarPDFUtil.gerarLaudo(dadosEmpresaDTO, TipoLaudoEnum.LAUDO_DEDETIZACAO_E_DESRATIZACAO.getNomeTemplate(), crq);
+    public byte[] gerarLaudoDedetizacaoEDesratizacaoPdf(DadosEmpresaDTO dadosEmpresaDTO, String crq, String dataServicoString) throws Exception {
+        return gerarPDFUtil.gerarLaudo(dadosEmpresaDTO, TipoLaudoEnum.LAUDO_DEDETIZACAO_E_DESRATIZACAO.getNomeTemplate(), crq, dataServicoString);
     }
     
 }

@@ -40,9 +40,10 @@ public class GerarPDFUtil {
     @Inject
     QuimicoService quimicoService;
 
-    public byte[] gerarLaudo(DadosEmpresaDTO dadosEmpresaDTO, String templatePath, String crq) throws Exception {
+    public byte[] gerarLaudo(DadosEmpresaDTO dadosEmpresaDTO, String templatePath, String crq, String dataServicoString) throws Exception {
         String cnpjFormatado = formatarCnpj(dadosEmpresaDTO.getCnpj());
         String cepFormatado = formatarCep(dadosEmpresaDTO.getCep());
+        LocalDate dataServico = LocalDate.parse(dataServicoString);
         String numeroFormatado;
 
         if (dadosEmpresaDTO.getNumero() != null && !dadosEmpresaDTO.getNumero().trim().isEmpty()) {
@@ -82,13 +83,13 @@ public class GerarPDFUtil {
                 acroForm.getField("municipio").setValue(municipioFormatado);
                 acroForm.getField("bairro").setValue(dadosEmpresaDTO.getBairro());
                 acroForm.getField("data_servico")
-                        .setValue(LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+                        .setValue(dataServico.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
                 acroForm.getField("data_validade").setValue(
                         templatePath.contains(TipoLaudoEnum.LAUDO_DEDETIZACAO.getNomeTemplate())
-                                ? getDataValidadeDedetizacao()
+                                ? getDataValidadeDedetizacao(dataServico)
                                 : (templatePath.contains(TipoLaudoEnum.LAUDO_LIMPEZA_CAIXA_DAGUA.getNomeTemplate())
-                                        ? getDataValidadeLimpezaCaixaDagua()
-                                        : getDataValidadeDedetizacaoDesratizacao()));
+                                        ? getDataValidadeLimpezaCaixaDagua(dataServico)
+                                        : getDataValidadeDedetizacaoDesratizacao(dataServico)));
                 System.out.println("CRQ: " + crq);
                 PDField signatureField = acroForm.getField("assinatura");
                 byte[] assBytes = getAssinatura(crq);
@@ -111,21 +112,18 @@ public class GerarPDFUtil {
         }
     }
 
-    private String getDataValidadeDedetizacao() {
-        LocalDate dataAtual = LocalDate.now();
-        LocalDate dataValidade = dataAtual.plusMonths(3);
+    private String getDataValidadeDedetizacao(LocalDate dataServico) {
+        LocalDate dataValidade = dataServico.plusMonths(3);
         return dataValidade.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
     }
 
-    private String getDataValidadeDedetizacaoDesratizacao() {
-        LocalDate dataAtual = LocalDate.now();
-        LocalDate dataValidade = dataAtual.plusMonths(3);
+    private String getDataValidadeDedetizacaoDesratizacao(LocalDate dataServico) {
+        LocalDate dataValidade = dataServico.plusMonths(3);
         return dataValidade.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
     }
 
-    private String getDataValidadeLimpezaCaixaDagua() {
-        LocalDate dataAtual = LocalDate.now();
-        LocalDate dataValidade = dataAtual.plusMonths(6);
+    private String getDataValidadeLimpezaCaixaDagua(LocalDate dataServico) {
+        LocalDate dataValidade = dataServico.plusMonths(6);
         return dataValidade.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
     }
 
@@ -157,23 +155,6 @@ public class GerarPDFUtil {
             GridFSFile gridFSFile = bucket.find(new Document("_id", id)).first();
             if (gridFSFile == null) {
                 throw new IllegalArgumentException("ID inválido ou arquivo não encontrado.");
-            }
-
-            String contentType = "application/octet-stream";
-            Document metadata = gridFSFile.getMetadata();
-            if (metadata != null && metadata.containsKey("contentType")) {
-                contentType = metadata.getString("contentType");
-            } else {
-                // tenta inferir pelo nome
-                String filename = gridFSFile.getFilename();
-                if (filename != null) {
-                    if (filename.endsWith(".jpg") || filename.endsWith(".jpeg"))
-                        contentType = "image/jpeg";
-                    else if (filename.endsWith(".png"))
-                        contentType = "image/png";
-                    else if (filename.endsWith(".gif"))
-                        contentType = "image/gif";
-                }
             }
 
             GridFSDownloadStream downloadStream = bucket.openDownloadStream(id);

@@ -3,6 +3,7 @@ package br.com.autolaudo.rest;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import br.com.autolaudo.dto.DadosEmpresaDTO;
+import br.com.autolaudo.dto.LaudoRequestDTO;
 import br.com.autolaudo.restClient.BrasilApiClient;
 import br.com.autolaudo.services.PdfService;
 import jakarta.inject.Inject;
@@ -34,16 +35,19 @@ public class LaudoResource {
     }
 
     @POST
-    @Path("/gerar/dedetizacao/{cnpj}/{crq}")
+    @Path("/gerar/dedetizacao/{cnpj}/{crq}/{dataServico}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces("application/pdf")
-    public Response gerarLaudoDedetizacaoPdf(@PathParam("cnpj") String cnpj, @PathParam("crq") String crq) {
+    public Response gerarLaudoDedetizacaoPdf(
+            LaudoRequestDTO laudoRequestDTO
+        ) {
 
-        DadosEmpresaDTO dadosEmpresa = brasilApiClient.buscarPorCnpj(cnpj);
+        DadosEmpresaDTO dadosEmpresa = brasilApiClient.buscarPorCnpj(laudoRequestDTO.getCnpj());
         try {
-            byte[] pdfBytes = pdfService.gerarLaudoDedetizacao(
-                brasilApiClient.buscarPorCnpj(cnpj),
-                crq
+            byte[] pdfBytes = pdfService.gerarLaudoLimpezaCaixaDagua(
+                brasilApiClient.buscarPorCnpj(laudoRequestDTO.getCnpj()),
+                laudoRequestDTO.getCrq(),
+                laudoRequestDTO.getDataServico()
             );
             
             String nomeArquivo = "LAUDO "+dadosEmpresa.getRazaoSocial().toUpperCase()+" - WEDEX - 2025 ASSINADO";
@@ -61,16 +65,19 @@ public class LaudoResource {
     }
 
     @POST
-    @Path("/gerar/limpezaCaixaDagua/{cnpj}/{crq}")
+    @Path("/gerar/limpezaCaixaDagua")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces("application/pdf")
-    public Response gerarLaudoLimpezaCaixaDaguaPdf(@PathParam("cnpj") String cnpj, @PathParam("crq") String crq) {
+    public Response gerarLaudoLimpezaCaixaDaguaPdf(
+            LaudoRequestDTO laudoRequestDTO
+        ) {
 
-        DadosEmpresaDTO dadosEmpresa = brasilApiClient.buscarPorCnpj(cnpj);
+        DadosEmpresaDTO dadosEmpresa = brasilApiClient.buscarPorCnpj(laudoRequestDTO.getCnpj());
         try {
             byte[] pdfBytes = pdfService.gerarLaudoLimpezaCaixaDagua(
-                brasilApiClient.buscarPorCnpj(cnpj),
-                crq
+                brasilApiClient.buscarPorCnpj(laudoRequestDTO.getCnpj()),
+                laudoRequestDTO.getCrq(),
+                laudoRequestDTO.getDataServico()
             );
             
             String nomeArquivo = "LAUDO CAIXA DAGUA "+dadosEmpresa.getRazaoSocial().toUpperCase()+" - WEDEX - 2025 ASSINADO";
@@ -91,14 +98,16 @@ public class LaudoResource {
     @Path("/gerar/dedetizacaoEDesratizacao/{cnpj}/{crq}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces("application/pdf")
-    public Response gerarLaudoDedetizacaoEDesratizacaoPdf(@PathParam("cnpj") String cnpj, @PathParam("crq") String crq) {
+    public Response gerarLaudoDedetizacaoEDesratizacaoPdf(
+            LaudoRequestDTO laudoRequestDTO
+        ) {
 
-        DadosEmpresaDTO dadosEmpresa = brasilApiClient.buscarPorCnpj(cnpj);
+        DadosEmpresaDTO dadosEmpresa = brasilApiClient.buscarPorCnpj(laudoRequestDTO.getCnpj());
         try {
-            byte[] pdfBytes = pdfService.gerarLaudoDedetizacaoEDesratizacaoPdf(
-                brasilApiClient.buscarPorCnpj(cnpj),
-                crq
-
+            byte[] pdfBytes = pdfService.gerarLaudoLimpezaCaixaDagua(
+                brasilApiClient.buscarPorCnpj(laudoRequestDTO.getCnpj()),
+                laudoRequestDTO.getCrq(),
+                laudoRequestDTO.getDataServico()
             );
             
             String nomeArquivo = "LAUDO DESRATIZACAO "+dadosEmpresa.getRazaoSocial().toUpperCase()+" - WEDEX - 2025 ASSINADO";
