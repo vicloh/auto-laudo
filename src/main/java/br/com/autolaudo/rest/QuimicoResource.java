@@ -41,7 +41,7 @@ public class QuimicoResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Operation(summary = "Cria químico com upload de assinatura")
     @APIResponse(responseCode = "200", description = "Imagem salva com sucesso")
-    public Response upload(@MultipartForm ImagemFormDTO form) {
+    public Response upload(@SuppressWarnings("removal") @MultipartForm ImagemFormDTO form) {
         try {
             MongoDatabase database = mongoClient.getDatabase("autolaudo_db");
             GridFSBucket gridFSBucket = GridFSBuckets.create(database, "imagens");
