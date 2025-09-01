@@ -4,8 +4,6 @@ import java.io.InputStream;
 
 import org.jboss.resteasy.reactive.PartType;
 
-import com.mongodb.lang.NonNull;
-
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.core.MediaType;
 
