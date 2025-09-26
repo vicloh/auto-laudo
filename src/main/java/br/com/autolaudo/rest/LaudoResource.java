@@ -3,7 +3,7 @@ package br.com.autolaudo.rest;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import br.com.autolaudo.dto.DadosEmpresaDTO;
-import br.com.autolaudo.dto.LaudoRequestDTO;
+import br.com.autolaudo.dto.request.LaudoRequestDTO;
 import br.com.autolaudo.restClient.BrasilApiClient;
 import br.com.autolaudo.services.PdfService;
 import jakarta.inject.Inject;

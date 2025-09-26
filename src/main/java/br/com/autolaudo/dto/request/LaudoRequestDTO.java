@@ -1,4 +1,4 @@
-package br.com.autolaudo.dto;
+package br.com.autolaudo.dto.request;
 
 public class LaudoRequestDTO {
     private String dataServico;
